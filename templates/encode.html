@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Encode Pesan</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Encode Pesan</h1>
+
+        <form method="POST" enctype="multipart/form-data">
+            <label>Upload Gambar:</label>
+            <input type="file" name="image" required>
+
+            <label>Pesan Rahasia:</label>
+            <textarea name="message" required></textarea>
+
+            <label>Kunci Vigenere:</label>
+            <input type="text" name="key" required>
+
+            <button type="submit">Encode</button>
+        </form>
+
+        <!-- HASIL -->
+        {% if result %}
+            <h2>Hasil Encode</h2>
+
+            <p><b>PSNR:</b> {{ psnr }} dB</p>
+            <p><b>SSIM:</b> {{ ssim }}</p>
+
+            <img src="/{{ output_image }}" width="300">
+
+            <br><br>
+
+            <a href="/download/{{ output_filename }}" class="button">
+                Download Stego Image
+            </a>
+
+            <hr>
+
+            <h3>Grafik Evaluasi</h3>
+
+            <!-- DATA DI SIMPAN DI HTML -->
+            <canvas 
+                id="myChart" 
+                width="400" 
+                height="200"
+                data-psnr="{{ psnr }}"
+                data-ssim="{{ ssim }}">
+            </canvas>
+
+            <!-- CHART JS -->
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+            <script>
+                const chartCanvas = document.getElementById('myChart');
+
+                const psnr = parseFloat(chartCanvas.dataset.psnr);
+                const ssim = parseFloat(chartCanvas.dataset.ssim);
+
+                const ctx = chartCanvas.getContext('2d');
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['PSNR', 'SSIM'],
+                        datasets: [{
+                            label: 'Nilai Evaluasi',
+                            data: [psnr, ssim],
+                            backgroundColor: ['#2d6cdf', '#28a745']
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Grafik Kualitas Stego Image'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            </script>
+        {% endif %}
+
+        <br><br>
+        <a href="/">Kembali</a>
+    </div>
+</body>
+</html>
