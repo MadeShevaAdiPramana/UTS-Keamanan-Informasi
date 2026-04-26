@@ -16,83 +16,143 @@ os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("index.html", active_page="home")
 
 
-@app.route("/encode", methods=["GET", "POST"])
-def encode():
+@app.route("/profile", methods=["GET", "POST"])
+def profile():
     if request.method == "POST":
-        image = request.files["image"]
-        message = request.form["message"]
-        key = request.form["key"]
+        username = request.form.get("username", "")
+        bio = request.form.get("bio", "")
+        password = request.form.get("password", "")
+        gender = request.form.get("gender", "male")
+        image = request.files.get("image")
 
-        if not key.strip():
+        # Validate: password (Vigenère key) must not be empty
+        if not password.strip():
             return render_template(
-                "encode.html",
-                result=False,
-                error="Key tidak boleh kosong."
+                "profile.html",
+                active_page="profile",
+                notification="Password cannot be empty.",
+                notification_type="notification-error",
+                username=username,
+                bio=bio,
+                password=password,
+                mode=gender,
             )
 
-        input_path = os.path.join(UPLOAD_FOLDER, image.filename)
-
-        base_name = os.path.splitext(image.filename)[0]
-        output_filename = "stego_" + base_name + ".png"
-        output_path = os.path.join(OUTPUT_FOLDER, output_filename)
-
-        image.save(input_path)
-
-        ciphertext = encrypt_vigenere(message, key)
-        embed_message_adaptive(input_path, ciphertext, output_path)
-
-        psnr = calculate_psnr(input_path, output_path)
-        ssim = calculate_ssim(input_path, output_path)
-
-        return render_template(
-            "encode.html",
-            result=True,
-            output_image=output_path,
-            output_filename=output_filename,
-            psnr=round(psnr, 2),
-            ssim=round(ssim, 4)
-        )
-
-    return render_template("encode.html", result=False)
-
-
-@app.route("/decode", methods=["GET", "POST"])
-def decode():
-    if request.method == "POST":
-        image = request.files["image"]
-        key = request.form["key"]
-
-        if not key.strip():
+        # Validate: an image must be uploaded
+        if not image or image.filename == "":
             return render_template(
-                "decode.html",
-                result=True,
-                message="Key tidak boleh kosong."
+                "profile.html",
+                active_page="profile",
+                notification="Please upload a profile picture.",
+                notification_type="notification-error",
+                username=username,
+                bio=bio,
+                password=password,
+                mode=gender,
             )
 
         input_path = os.path.join(UPLOAD_FOLDER, image.filename)
         image.save(input_path)
 
-        extracted_ciphertext = extract_message_adaptive(input_path)
+        # Female = Encode, Male = Decode
+        if gender == "female":
+            # --- ENCODE ---
+            if not bio.strip():
+                return render_template(
+                    "profile.html",
+                    active_page="profile",
+                    notification="Bio cannot be empty when saving a profile.",
+                    notification_type="notification-error",
+                    username=username,
+                    bio=bio,
+                    password=password,
+                    mode=gender,
+                )
 
-        if extracted_ciphertext is None:
+            base_name = os.path.splitext(image.filename)[0]
+            output_filename = "stego_" + base_name + ".png"
+            output_path = os.path.join(OUTPUT_FOLDER, output_filename)
+
+            try:
+                ciphertext = encrypt_vigenere(bio, password)
+                embed_message_adaptive(input_path, ciphertext, output_path)
+            except ValueError as e:
+                return render_template(
+                    "profile.html",
+                    active_page="profile",
+                    notification=str(e),
+                    notification_type="notification-error",
+                    username=username,
+                    bio=bio,
+                    password=password,
+                    mode=gender,
+                )
+
+            psnr = calculate_psnr(input_path, output_path)
+            ssim = calculate_ssim(input_path, output_path)
+
             return render_template(
-                "decode.html",
-                result=True,
-                message="Pesan tidak ditemukan. Pastikan file yang diupload adalah stego image PNG hasil encode."
+                "profile.html",
+                active_page="profile",
+                notification="Profile updated successfully!",
+                notification_type="notification-success",
+                username=username,
+                bio=bio,
+                password=password,
+                mode=gender,
+                profile_image=output_path,
+                output_filename=output_filename,
+                show_analytics=True,
+                psnr=round(psnr, 2),
+                ssim=round(ssim, 4),
             )
 
-        plaintext = decrypt_vigenere(extracted_ciphertext, key)
+        else:
+            # --- DECODE ---
+            try:
+                extracted_ciphertext = extract_message_adaptive(input_path)
+            except ValueError as e:
+                return render_template(
+                    "profile.html",
+                    active_page="profile",
+                    notification=str(e),
+                    notification_type="notification-error",
+                    username=username,
+                    bio=bio,
+                    password=password,
+                    mode=gender,
+                )
 
-        return render_template(
-            "decode.html",
-            result=True,
-            message=plaintext
-        )
+            if extracted_ciphertext is None:
+                return render_template(
+                    "profile.html",
+                    active_page="profile",
+                    notification="No hidden data found in this image. Please upload a valid profile picture.",
+                    notification_type="notification-error",
+                    username=username,
+                    bio=bio,
+                    password=password,
+                    mode=gender,
+                )
 
-    return render_template("decode.html", result=False)
+            plaintext = decrypt_vigenere(extracted_ciphertext, password)
+
+            return render_template(
+                "profile.html",
+                active_page="profile",
+                notification="Profile loaded successfully! Your bio has been updated.",
+                notification_type="notification-info",
+                username=username,
+                bio=plaintext,
+                password=password,
+                mode=gender,
+                profile_image=input_path,
+            )
+
+    return render_template("profile.html", active_page="profile")
 
 
 @app.route("/download/<filename>")

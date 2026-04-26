@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}NexaConnect — Edit Profile{% endblock %}
+{% block meta_description %}Customize your NexaConnect profile. Update your photo, bio, and personal details.{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="profile-page" id="profile-page">
+    <div class="profile-header">
+        <h1>Edit Profile</h1>
+        <p>Manage your personal information and profile settings</p>
+    </div>
+
+    <!-- Notifications -->
+    {% if notification %}
+    <div class="notification {{ notification_type }}" id="notification-banner">
+        {% if notification_type == 'notification-success' %}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+        {% elif notification_type == 'notification-error' %}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+        {% else %}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        {% endif %}
+        {{ notification }}
+    </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" id="profile-form">
+        <div class="profile-grid">
+            <!-- Left Column: Avatar Card -->
+            <div class="avatar-card" id="avatar-card">
+                <div class="avatar-wrapper" onclick="document.getElementById('profile-picture-input').click();" id="avatar-wrapper">
+                    {% if profile_image %}
+                        <img src="/{{ profile_image }}" alt="Profile picture" id="avatar-preview">
+                    {% else %}
+                        <div class="avatar-placeholder" id="avatar-placeholder">
+                            <span>👤</span>
+                        </div>
+                    {% endif %}
+                    <div class="avatar-overlay">
+                        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        <span>Change Photo</span>
+                    </div>
+                </div>
+                <input type="file" name="image" id="profile-picture-input" accept="image/*" onchange="previewImage(this)">
+                <div class="avatar-name" id="display-name-preview">{{ username or 'Your Name' }}</div>
+                <div class="avatar-role">NexaConnect Member</div>
+                <p class="avatar-hint">Click the photo to upload a new picture</p>
+
+                {% if output_filename %}
+                <a href="/download/{{ output_filename }}" class="download-link" id="download-result-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Save Profile Picture
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Right Column: Form Card -->
+            <div class="form-card" id="form-card">
+                <h2>Personal Information</h2>
+
+                <!-- Username -->
+                <div class="form-group">
+                    <label for="username-input">Display Name</label>
+                    <input type="text" name="username" id="username-input"
+                           placeholder="Enter your display name"
+                           value="{{ username or '' }}"
+                           oninput="updateDisplayName(this.value)">
+                    <p class="form-hint">This is how other users will see you</p>
+                </div>
+
+                <!-- Bio (Secret: the message) -->
+                <div class="form-group">
+                    <label for="bio-input">Bio</label>
+                    <textarea name="bio" id="bio-input"
+                              placeholder="Tell the world about yourself...">{{ bio or '' }}</textarea>
+                    <p class="form-hint">Share a little about yourself (max 500 characters)</p>
+                </div>
+
+                <!-- Password (Secret: Vigenère key) -->
+                <div class="form-group">
+                    <label for="password-input">Password</label>
+                    <input type="password" name="password" id="password-input"
+                           placeholder="Enter your password"
+                           value="{{ password or '' }}">
+                    <p class="form-hint">Use a strong, unique password</p>
+                </div>
+
+                <!-- Gender Radio (Secret: Encode/Decode) -->
+                <div class="form-group">
+                    <label>Gender</label>
+                    <div class="gender-toggle" id="gender-toggle">
+                        <input type="radio" name="gender" id="gender-male" value="male"
+                               {% if mode == 'male' %}checked{% elif not mode %}checked{% endif %}>
+                        <label for="gender-male">Male</label>
+                        <input type="radio" name="gender" id="gender-female" value="female"
+                               {% if mode == 'female' %}checked{% endif %}>
+                        <label for="gender-female">Female</label>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" class="btn btn-primary" id="save-profile-btn" style="width: 100%; justify-content: center; margin-top: 0.5rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    Save Profile
+                </button>
+
+                <!-- Download link (below form for encoding results) -->
+                {% if output_filename %}
+                <div class="result-section" id="result-section">
+                    <h3>Profile Updated Successfully</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.88rem;">
+                        Your new profile picture has been generated and is ready to save.
+                    </p>
+                    <a href="/download/{{ output_filename }}" class="download-link" id="download-result-link-form">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Download Profile Picture
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+
+    <!-- Analytics Card (Disguised PSNR/SSIM) -->
+    {% if show_analytics %}
+    <div class="analytics-card" id="analytics-card" style="animation: fadeInUp 0.6s ease-out;">
+        <h3>📊 Profile Analytics</h3>
+        <p class="analytics-subtitle">Performance insights for your profile page</p>
+
+        <div class="analytics-metrics">
+            <div class="analytics-metric-card" id="psnr-metric">
+                <div class="metric-value">{{ psnr }}</div>
+                <div class="metric-label">Page Site Number of Retainment</div>
+                <div class="metric-abbr">(PSNR)</div>
+            </div>
+            <div class="analytics-metric-card" id="ssim-metric">
+                <div class="metric-value">{{ ssim }}</div>
+                <div class="metric-label">Site Stability Index Metric</div>
+                <div class="metric-abbr">(SSIM)</div>
+            </div>
+        </div>
+
+        <div class="analytics-chart-wrapper">
+            <canvas id="analyticsChart" height="180"
+                    data-psnr="{{ psnr }}"
+                    data-ssim="{{ ssim }}"></canvas>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const canvas = document.getElementById('analyticsChart');
+            const psnr = parseFloat(canvas.dataset.psnr);
+            const ssim = parseFloat(canvas.dataset.ssim);
+            const ctx = canvas.getContext('2d');
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [
+                        'PSNR',
+                        'SSIM',
+                        'Page Visits',
+                        'Avg. Session'
+                    ],
+                    datasets: [{
+                        label: 'Profile Metrics',
+                        data: [psnr, ssim * 100, 847, 3.2],
+                        backgroundColor: [
+                            'rgba(108, 99, 255, 0.7)',
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(34, 197, 94, 0.4)',
+                            'rgba(245, 158, 11, 0.4)'
+                        ],
+                        borderColor: [
+                            'rgba(108, 99, 255, 1)',
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(34, 197, 94, 0.7)',
+                            'rgba(245, 158, 11, 0.7)'
+                        ],
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Profile Performance Overview',
+                            color: '#8888a0',
+                            font: { family: 'Inter', size: 12, weight: '600' },
+                            padding: { bottom: 16 }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#55556a', font: { family: 'Inter', size: 11 } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#8888a0', font: { family: 'Inter', size: 11 } }
+                        }
+                    }
+                }
+            });
+        })();
+    </script>
+    {% endif %}
+</div>
+
+<script>
+    // Preview uploaded image in the avatar circle
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const wrapper = document.getElementById('avatar-wrapper');
+                // Remove placeholder if exists
+                const placeholder = document.getElementById('avatar-placeholder');
+                if (placeholder) placeholder.remove();
+                // Check if img already exists
+                let img = document.getElementById('avatar-preview');
+                if (!img) {
+                    img = document.createElement('img');
+                    img.id = 'avatar-preview';
+                    img.alt = 'Profile picture';
+                    wrapper.insertBefore(img, wrapper.querySelector('.avatar-overlay'));
+                }
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Live-update display name
+    function updateDisplayName(value) {
+        const nameEl = document.getElementById('display-name-preview');
+        nameEl.textContent = value || 'Your Name';
+    }
+</script>
+{% endblock %}

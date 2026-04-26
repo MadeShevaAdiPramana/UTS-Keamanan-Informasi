@@ -1,19 +1,178 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>StegoSecure Image System</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-    <div class="container">
-        <h1>StegoSecure Image System</h1>
-        <p>
-            Aplikasi untuk menyembunyikan pesan rahasia ke dalam citra digital
-            menggunakan Vigenere Cipher dan Adaptive Edge-Based LSB.
-        </p>
+{% extends "base.html" %}
 
-        <a href="/encode" class="button">Encode Pesan</a>
-        <a href="/decode" class="button">Decode Pesan</a>
+{% block title %}NexaConnect — Connect. Share. Belong.{% endblock %}
+{% block meta_description %}Join NexaConnect — the next generation social platform where connections feel real.{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero" id="hero-section">
+    <div class="hero-bg">
+        <img src="/static/hero_banner.png" alt="NexaConnect network visualization">
     </div>
-</body>
-</html>
+    <div class="hero-content">
+        <div class="hero-badge">
+            <span class="dot"></span>
+            Now in Open Beta
+        </div>
+        <h1>
+            Where Real<br>
+            <span class="gradient-text">Connections</span> Happen
+        </h1>
+        <p>
+            NexaConnect brings people together through meaningful interactions.
+            Share your story, build your network, and discover communities
+            that matter to you.
+        </p>
+        <div class="hero-actions">
+            <a href="/profile" class="btn btn-primary" id="hero-cta-start">Get Started</a>
+            <a href="#features" class="btn btn-secondary" id="hero-cta-learn">Learn More</a>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Bar -->
+<div class="stats-bar" id="stats-section">
+    <div class="stat-item">
+        <h3>2.4M+</h3>
+        <p>Active Users</p>
+    </div>
+    <div class="stat-item">
+        <h3>150+</h3>
+        <p>Countries</p>
+    </div>
+    <div class="stat-item">
+        <h3>98%</h3>
+        <p>Satisfaction</p>
+    </div>
+    <div class="stat-item">
+        <h3>24/7</h3>
+        <p>Support</p>
+    </div>
+</div>
+
+<!-- Features Section -->
+<section class="section" id="features">
+    <div class="section-header">
+        <span class="section-label">Features</span>
+        <h2 class="section-title">Everything You Need</h2>
+        <p class="section-subtitle">
+            Powerful features designed to make your social experience seamless,
+            secure, and genuinely enjoyable.
+        </p>
+    </div>
+    <div class="features-grid">
+        <div class="feature-card" id="feature-profiles">
+            <div class="feature-icon">👤</div>
+            <h3>Rich Profiles</h3>
+            <p>
+                Express yourself with customizable profiles. Upload your best photos,
+                write your bio, and let the world know who you are.
+            </p>
+        </div>
+        <div class="feature-card" id="feature-messaging">
+            <div class="feature-icon">💬</div>
+            <h3>Instant Messaging</h3>
+            <p>
+                Stay connected with friends through fast, reliable messaging.
+                Send texts, photos, and voice notes with end-to-end encryption.
+            </p>
+        </div>
+        <div class="feature-card" id="feature-communities">
+            <div class="feature-icon">🌐</div>
+            <h3>Communities</h3>
+            <p>
+                Join communities that share your passions. From tech to art,
+                there's a group for everyone waiting to welcome you.
+            </p>
+        </div>
+        <div class="feature-card" id="feature-privacy">
+            <div class="feature-icon">🔒</div>
+            <h3>Privacy First</h3>
+            <p>
+                Your data is yours. We use state-of-the-art encryption and
+                never sell your information. Full control, always.
+            </p>
+        </div>
+        <div class="feature-card" id="feature-discover">
+            <div class="feature-icon">🔍</div>
+            <h3>Smart Discovery</h3>
+            <p>
+                Our intelligent algorithm connects you with people and content
+                that genuinely interest you — no noise, no spam.
+            </p>
+        </div>
+        <div class="feature-card" id="feature-events">
+            <div class="feature-icon">📅</div>
+            <h3>Events & Meetups</h3>
+            <p>
+                Organize and discover events near you. From virtual hangouts
+                to local meetups, bring connections to life.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="section" id="testimonials">
+    <div class="section-header">
+        <span class="section-label">Testimonials</span>
+        <h2 class="section-title">Loved by Millions</h2>
+        <p class="section-subtitle">
+            Don't just take our word for it — hear what our community has to say.
+        </p>
+    </div>
+    <div class="testimonials-grid">
+        <div class="testimonial-card" id="testimonial-1">
+            <p class="testimonial-text">
+                "NexaConnect changed the way I network. The communities feature
+                is incredibly well-designed and I've made genuine connections
+                that turned into real friendships."
+            </p>
+            <div class="testimonial-author">
+                <div class="testimonial-avatar">AW</div>
+                <div class="testimonial-info">
+                    <h4>Alex Walker</h4>
+                    <p>Product Designer</p>
+                </div>
+            </div>
+        </div>
+        <div class="testimonial-card" id="testimonial-2">
+            <p class="testimonial-text">
+                "The privacy features are what sold me. Finally, a social platform
+                that actually respects user data. Plus, the dark mode is gorgeous."
+            </p>
+            <div class="testimonial-author">
+                <div class="testimonial-avatar">SC</div>
+                <div class="testimonial-info">
+                    <h4>Sarah Chen</h4>
+                    <p>Cybersecurity Analyst</p>
+                </div>
+            </div>
+        </div>
+        <div class="testimonial-card" id="testimonial-3">
+            <p class="testimonial-text">
+                "I use NexaConnect for both personal and professional networking.
+                The smart discovery feature consistently shows me relevant
+                connections. It's like magic."
+            </p>
+            <div class="testimonial-author">
+                <div class="testimonial-avatar">MR</div>
+                <div class="testimonial-info">
+                    <h4>Marcus Rivera</h4>
+                    <p>Startup Founder</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section" id="cta-section">
+    <h2>Ready to Join?</h2>
+    <p>
+        Set up your profile in seconds and start connecting with people
+        who share your vision.
+    </p>
+    <a href="/profile" class="btn btn-primary" id="cta-join-btn">Create Your Profile</a>
+</section>
+{% endblock %}
